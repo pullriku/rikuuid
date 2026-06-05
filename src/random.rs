@@ -22,11 +22,11 @@ unsafe extern "C" {
 }
 
 #[cfg(target_os = "linux")]
-pub fn random_bytes() -> io::Result<[u8; N_UUID_BYTES]> {
-    let mut buf: MaybeUninit<[u8; N_UUID_BYTES]> = MaybeUninit::uninit();
-    let ret = unsafe { getrandom(buf.as_mut_ptr().cast(), N_UUID_BYTES, 0) };
+pub fn random_bytes<const N: usize>() -> io::Result<[u8; N]> {
+    let mut buf: MaybeUninit<[u8; N]> = MaybeUninit::uninit();
+    let ret = unsafe { getrandom(buf.as_mut_ptr().cast(), N, 0) };
 
-    if ret == N_UUID_BYTES as isize {
+    if ret == N as isize {
         unsafe { Ok(buf.assume_init()) }
     } else {
         Err(std::io::Error::last_os_error())
