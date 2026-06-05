@@ -9,7 +9,7 @@ pub type Result<T> = std::result::Result<T, MyUuidError>;
 
 pub const N_UUID_BYTES: usize = 16;
 
-pub(crate) fn bytes_to_uuid_string<const N: usize>(bytes: [u8; N]) -> Result<String> {
+pub(crate) fn bytes_to_uuid_string(bytes: [u8; N_UUID_BYTES]) -> Result<String> {
     const HEX: &[u8; 16] = b"0123456789abcdef";
 
     let mut buf = [0u8; 36];
