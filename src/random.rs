@@ -1,43 +1,35 @@
-#[cfg(target_os = "linux")]
-use std::{io, mem::MaybeUninit, os::raw::{c_uint, c_void}};
 #[cfg(target_os = "macos")]
-use std::{ffi::{c_int, c_void}, io, mem::MaybeUninit};
+use std::{
+    ffi::{c_int, c_void},
+    io,
+    mem::MaybeUninit,
+};
+#[cfg(target_os = "linux")]
+use std::{
+    ffi::{c_uint, c_void},
+    io,
+    mem::MaybeUninit,
+};
 
 const BUFLEN: usize = 16;
 
 #[cfg(target_os = "linux")]
 unsafe extern "C" {
-    fn getrandom(
-        buf: *mut c_void,
-        buflen: usize,
-        flags: c_uint,
-    ) -> isize;
+    fn getrandom(buf: *mut c_void, buflen: usize, flags: c_uint) -> isize;
 }
 
 #[cfg(target_os = "macos")]
 unsafe extern "C" {
-    fn getentropy(
-        buf: *mut c_void,
-        buflen: usize,
-    ) -> c_int;
+    fn getentropy(buf: *mut c_void, buflen: usize) -> c_int;
 }
-
 
 #[cfg(target_os = "linux")]
 pub fn random_bytes() -> io::Result<[u8; BUFLEN]> {
     let mut buf: MaybeUninit<[u8; BUFLEN]> = MaybeUninit::uninit();
-    let ret = unsafe {
-        getrandom(
-            buf.as_mut_ptr().cast(),
-            BUFLEN,
-            0
-        )
-    };
+    let ret = unsafe { getrandom(buf.as_mut_ptr().cast(), BUFLEN, 0) };
 
     if ret == BUFLEN as isize {
-        unsafe {
-            Ok(buf.assume_init())
-        }
+        unsafe { Ok(buf.assume_init()) }
     } else {
         Err(std::io::Error::last_os_error())
     }
@@ -46,14 +38,10 @@ pub fn random_bytes() -> io::Result<[u8; BUFLEN]> {
 #[cfg(target_os = "macos")]
 pub fn random_bytes() -> io::Result<[u8; BUFLEN]> {
     let mut buf: MaybeUninit<[u8; BUFLEN]> = MaybeUninit::uninit();
-    let ret = unsafe {
-        getentropy(buf.as_mut_ptr().cast(), BUFLEN)
-    };
+    let ret = unsafe { getentropy(buf.as_mut_ptr().cast(), BUFLEN) };
 
     if ret == 0 {
-        unsafe {
-            Ok(buf.assume_init())
-        }
+        unsafe { Ok(buf.assume_init()) }
     } else {
         Err(std::io::Error::last_os_error())
     }
@@ -63,7 +51,7 @@ pub fn random_bytes() -> io::Result<[u8; BUFLEN]> {
 mod tests {
     use std::collections::HashSet;
 
-use super::*;
+    use super::*;
 
     #[test]
     fn random_bytes_has_no_duplicates_in_many_samples() {
@@ -71,7 +59,10 @@ use super::*;
 
         for _ in 0..1000000 {
             let bytes: [u8; BUFLEN] = random_bytes().unwrap();
-            assert!(seen.insert(bytes), "duplicate random value found: {bytes:?}");
+            assert!(
+                seen.insert(bytes),
+                "duplicate random value found: {bytes:?}"
+            );
         }
     }
 
@@ -92,9 +83,6 @@ use super::*;
 
         let ratio = ones as f64 / total_bits as f64;
 
-        assert!(
-            (0.49..=0.51).contains(&ratio),
-            "ones ratio was {ratio}"
-        );
+        assert!((0.49..=0.51).contains(&ratio), "ones ratio was {ratio}");
     }
 }
