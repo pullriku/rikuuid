@@ -11,8 +11,6 @@ use std::{
     mem::MaybeUninit,
 };
 
-const BUFLEN: usize = 16;
-
 #[cfg(target_os = "linux")]
 unsafe extern "C" {
     fn getrandom(buf: *mut c_void, buflen: usize, flags: c_uint) -> isize;
@@ -24,11 +22,11 @@ unsafe extern "C" {
 }
 
 #[cfg(target_os = "linux")]
-pub fn random_bytes() -> io::Result<[u8; BUFLEN]> {
-    let mut buf: MaybeUninit<[u8; BUFLEN]> = MaybeUninit::uninit();
-    let ret = unsafe { getrandom(buf.as_mut_ptr().cast(), BUFLEN, 0) };
+pub fn random_bytes() -> io::Result<[u8; N_UUID_BYTES]> {
+    let mut buf: MaybeUninit<[u8; N_UUID_BYTES]> = MaybeUninit::uninit();
+    let ret = unsafe { getrandom(buf.as_mut_ptr().cast(), N_UUID_BYTES, 0) };
 
-    if ret == BUFLEN as isize {
+    if ret == N_UUID_BYTES as isize {
         unsafe { Ok(buf.assume_init()) }
     } else {
         Err(std::io::Error::last_os_error())
@@ -36,9 +34,9 @@ pub fn random_bytes() -> io::Result<[u8; BUFLEN]> {
 }
 
 #[cfg(target_os = "macos")]
-pub fn random_bytes() -> io::Result<[u8; BUFLEN]> {
-    let mut buf: MaybeUninit<[u8; BUFLEN]> = MaybeUninit::uninit();
-    let ret = unsafe { getentropy(buf.as_mut_ptr().cast(), BUFLEN) };
+pub fn random_bytes<const N: usize>() -> io::Result<[u8; N]> {
+    let mut buf: MaybeUninit<[u8; N]> = MaybeUninit::uninit();
+    let ret = unsafe { getentropy(buf.as_mut_ptr().cast(), N) };
 
     if ret == 0 {
         unsafe { Ok(buf.assume_init()) }
@@ -51,14 +49,16 @@ pub fn random_bytes() -> io::Result<[u8; BUFLEN]> {
 mod tests {
     use std::collections::HashSet;
 
-    use super::*;
+    use crate::N_UUID_BYTES;
+
+use super::*;
 
     #[test]
     fn random_bytes_has_no_duplicates_in_many_samples() {
         let mut seen = HashSet::new();
 
         for _ in 0..1000000 {
-            let bytes: [u8; BUFLEN] = random_bytes().unwrap();
+            let bytes: [u8; N_UUID_BYTES] = random_bytes().unwrap();
             assert!(
                 seen.insert(bytes),
                 "duplicate random value found: {bytes:?}"
@@ -69,12 +69,12 @@ mod tests {
     #[test]
     fn random_bytes_bits_are_roughly_balanced() {
         let samples = 1_000_000;
-        let total_bits = samples * BUFLEN * 8;
+        let total_bits = samples * N_UUID_BYTES * 8;
 
         let mut ones = 0usize;
 
         for _ in 0..samples {
-            let bytes = random_bytes().unwrap();
+            let bytes = random_bytes::<N_UUID_BYTES>().unwrap();
 
             for byte in bytes {
                 ones += byte.count_ones() as usize;
