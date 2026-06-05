@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "my-uuid"
+name = "rikuuid"
 version = "0.1.0"
