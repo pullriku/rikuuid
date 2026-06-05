@@ -1,5 +1,5 @@
 #[cfg(target_os = "linux")]
-use std::{os::raw::c_uint, result};
+use std::{io, mem::MaybeUninit, os::raw::{c_uint, c_void}};
 #[cfg(target_os = "macos")]
 use std::{ffi::{c_int, c_void}, io, mem::MaybeUninit};
 
@@ -24,11 +24,23 @@ unsafe extern "C" {
 
 
 #[cfg(target_os = "linux")]
-pub fn random_bytes() -> Option<[u8; BUFLEN]> {
+pub fn random_bytes() -> io::Result<[u8; BUFLEN]> {
     let mut buf: MaybeUninit<[u8; BUFLEN]> = MaybeUninit::uninit();
-    let result = unsafe {
-        let ret = getrandom();
+    let ret = unsafe {
+        getrandom(
+            buf.as_mut_ptr().cast(),
+            BUFLEN,
+            0
+        )
     };
+
+    if ret >= 0 {
+        unsafe {
+            Ok(buf.assume_init())
+        }
+    } else {
+        Err(std::io::Error::last_os_error())
+    }
 }
 
 #[cfg(target_os = "macos")]
