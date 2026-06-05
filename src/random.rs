@@ -68,7 +68,7 @@ mod tests {
 
     #[test]
     fn random_bytes_bits_are_roughly_balanced() {
-        let samples = 100_000;
+        let samples = 1_000_000;
         let total_bits = samples * BUFLEN * 8;
 
         let mut ones = 0usize;
@@ -83,6 +83,7 @@ mod tests {
 
         let ratio = ones as f64 / total_bits as f64;
 
-        assert!((0.49..=0.51).contains(&ratio), "ones ratio was {ratio}");
+        dbg!(ratio);
+        assert!((0.499..=0.501).contains(&ratio), "ones ratio was {ratio}");
     }
 }
