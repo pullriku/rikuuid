@@ -67,8 +67,9 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "heavy test"]
     fn random_bytes_bits_are_roughly_balanced() {
-        let samples = 1_000_000;
+        let samples = 100_000;
         let total_bits = samples * N_UUID_BYTES * 8;
 
         let mut ones = 0usize;

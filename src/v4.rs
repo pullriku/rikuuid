@@ -1,35 +1,69 @@
-use crate::{N_UUID_BYTES, Result};
+use crate::{N_UUID_BYTES, Result, bytes_to_uuid_string, random::random_bytes};
 
-pub fn uuidv4() -> Result<String> {
-    let mut bytes = crate::random::random_bytes()?;
-
-    // ver: 第6オクテットの上位4bitをバージョンの数字(4)にする。
-    bytes[6] &= 0x0f; // まず0にして、
-    bytes[6] |= b'4'; // 上位をバージョン番号にする。
-
-    // var:第8オクテットの上位2bitを0b10にする。
-    bytes[8] &= 0x3f;
-    bytes[8] |= 0x80;
+pub fn uuid_v4() -> Result<String> {
+    let bytes = uuid_v4_from_random(random_bytes::<N_UUID_BYTES>()?);
 
     bytes_to_uuid_string(bytes)
 }
 
-fn bytes_to_uuid_string(bytes: [u8; N_UUID_BYTES]) -> Result<String> {
-    const HEX: &[u8; 16] = b"0123456789abcdef";
+fn uuid_v4_from_random(mut bytes: [u8; N_UUID_BYTES]) -> [u8; N_UUID_BYTES] {
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
 
-    let mut buf = [0u8; 36];
-    let mut current: usize = 0;
+    bytes
+}
 
-    for (i, byte) in bytes.iter().copied().enumerate() {
-        if matches!(i, 4 | 6 | 8 | 10) {
-            buf[current] = b'-';
-            current += 1;
-        }
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-        buf[current] = HEX[(byte >> 4) as usize];
-        buf[current + 1] = HEX[(byte & 0x0f) as usize];
-        current += 2
+    #[test]
+    fn uuid_v4_has_version_4() {
+        let uuid = uuid_v4_from_random([0xff; N_UUID_BYTES]);
+
+        assert_eq!(uuid[6] >> 4, 0x4);
     }
 
-    Ok(String::from_utf8(buf.to_vec())?)
+    #[test]
+    fn uuid_v4_has_rfc_variant() {
+        let uuid = uuid_v4_from_random([0xff; N_UUID_BYTES]);
+
+        assert_eq!(uuid[8] >> 6, 0b10);
+    }
+
+    #[test]
+    fn uuid_v4_preserves_random_bits_except_version_and_variant() {
+        let input = [
+            0x00, 0x11, 0x22, 0x33,
+            0x44, 0x55, 0xaa, 0x77,
+            0xcc, 0x99, 0xaa, 0xbb,
+            0xcc, 0xdd, 0xee, 0xff,
+        ];
+
+        let uuid = uuid_v4_from_random(input);
+
+        // bytes[6]: 0xaa -> 0x4a
+        assert_eq!(uuid[6], 0x4a);
+
+        // bytes[8]: 0xcc -> 0x8c
+        assert_eq!(uuid[8], 0x8c);
+
+        assert_eq!(&uuid[..6], &input[..6]);
+        assert_eq!(uuid[7], input[7]);
+        assert_eq!(&uuid[9..], &input[9..]);
+    }
+
+    #[test]
+    fn uuid_v4_string_has_expected_format() {
+        let input = [
+            0x00, 0x11, 0x22, 0x33,
+            0x44, 0x55, 0xaa, 0x77,
+            0xcc, 0x99, 0xaa, 0xbb,
+            0xcc, 0xdd, 0xee, 0xff,
+        ];
+
+        let s = bytes_to_uuid_string(uuid_v4_from_random(input)).unwrap();
+
+        assert_eq!(s, "00112233-4455-4a77-8c99-aabbccddeeff");
+    }
 }
