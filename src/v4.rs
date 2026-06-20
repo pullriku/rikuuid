@@ -58,7 +58,7 @@ mod tests {
             0xee, 0xff,
         ];
 
-        let s = bytes_to_uuid_string(uuid_v4_from_random(input)).unwrap();
+        let s = bytes_to_uuid_string(uuid_v4_from_random(input));
 
         assert_eq!(s, "00112233-4455-4a77-8c99-aabbccddeeff");
     }
