@@ -1,11 +1,11 @@
-use crate::error::MyUuidError;
+use crate::error::UuidError;
 
 pub mod error;
 pub mod random;
 pub mod v4;
 pub mod v7;
 
-pub type Result<T> = std::result::Result<T, MyUuidError>;
+pub type Result<T> = std::result::Result<T, UuidError>;
 
 pub const N_UUID_BYTES: usize = 16;
 

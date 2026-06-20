@@ -1,6 +1,6 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::{N_UUID_BYTES, Result, bytes_to_uuid_string, random::random_bytes};
+use crate::{N_UUID_BYTES, Result, bytes_to_uuid_string, error::UuidError, random::random_bytes};
 
 const N_TS_BYTES: usize = 6;
 const N_RANDOM_BYTES: usize = N_UUID_BYTES - N_TS_BYTES;
@@ -8,7 +8,7 @@ const N_RANDOM_BYTES: usize = N_UUID_BYTES - N_TS_BYTES;
 pub fn uuid_v7() -> Result<String> {
     let timestamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .expect("System time is before Unix epoch.")
+        .map_err(|_| UuidError::ClockBeforeUnixEpoch)?
         .as_millis() as u64;
 
     bytes_to_uuid_string(uuid_v7_from_parts(
