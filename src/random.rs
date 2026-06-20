@@ -22,7 +22,7 @@ unsafe extern "C" {
 }
 
 #[cfg(target_os = "linux")]
-pub fn random_bytes<const N: usize>() -> io::Result<[u8; N]> {
+pub(crate) fn random_bytes<const N: usize>() -> io::Result<[u8; N]> {
     let mut buf: MaybeUninit<[u8; N]> = MaybeUninit::uninit();
     let ret = unsafe { getrandom(buf.as_mut_ptr().cast(), N, 0) };
 
@@ -34,7 +34,7 @@ pub fn random_bytes<const N: usize>() -> io::Result<[u8; N]> {
 }
 
 #[cfg(target_os = "macos")]
-pub fn random_bytes<const N: usize>() -> io::Result<[u8; N]> {
+pub(crate) fn random_bytes<const N: usize>() -> io::Result<[u8; N]> {
     let mut buf: MaybeUninit<[u8; N]> = MaybeUninit::uninit();
     let ret = unsafe { getentropy(buf.as_mut_ptr().cast(), N) };
 
