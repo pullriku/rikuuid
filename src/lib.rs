@@ -9,7 +9,7 @@ pub type Result<T> = std::result::Result<T, UuidError>;
 
 pub const N_UUID_BYTES: usize = 16;
 
-pub(crate) fn bytes_to_uuid_string(bytes: [u8; N_UUID_BYTES]) -> Result<String> {
+pub(crate) fn bytes_to_uuid_string(bytes: [u8; N_UUID_BYTES]) -> String {
     const HEX: &[u8; 16] = b"0123456789abcdef";
 
     let mut buf = [0u8; 36];
@@ -26,5 +26,5 @@ pub(crate) fn bytes_to_uuid_string(bytes: [u8; N_UUID_BYTES]) -> Result<String> 
         current += 2
     }
 
-    Ok(String::from_utf8(buf.to_vec())?)
+    String::from_utf8(buf.to_vec()).expect("UUID string contains only ASCII hex digits and hyphens")
 }
