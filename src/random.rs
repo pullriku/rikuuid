@@ -25,11 +25,11 @@ unsafe extern "C" {
 }
 
 #[cfg(target_os = "linux")]
-pub(crate) fn random_bytes<const N: usize>() -> io::Result<[u8; N]> {
-    let mut buf: MaybeUninit<[u8; N]> = MaybeUninit::uninit();
-    let ret = unsafe { getrandom(buf.as_mut_ptr().cast(), N, 0) };
+pub(crate) fn random_bytes_16() -> io::Result<[u8; 16]> {
+    let mut buf: MaybeUninit<[u8; 16]> = MaybeUninit::uninit();
+    let ret = unsafe { getrandom(buf.as_mut_ptr().cast(), 16, 0) };
 
-    if ret == N as isize {
+    if ret == 16 as isize {
         unsafe { Ok(buf.assume_init()) }
     } else {
         Err(std::io::Error::last_os_error())
@@ -37,9 +37,9 @@ pub(crate) fn random_bytes<const N: usize>() -> io::Result<[u8; N]> {
 }
 
 #[cfg(target_os = "macos")]
-pub(crate) fn random_bytes<const N: usize>() -> io::Result<[u8; N]> {
-    let mut buf: MaybeUninit<[u8; N]> = MaybeUninit::uninit();
-    let ret = unsafe { getentropy(buf.as_mut_ptr().cast(), N) };
+pub(crate) fn random_bytes_16() -> io::Result<[u8; 16]> {
+    let mut buf: MaybeUninit<[u8; 16]> = MaybeUninit::uninit();
+    let ret = unsafe { getentropy(buf.as_mut_ptr().cast(), 16) };
 
     if ret == 0 {
         unsafe { Ok(buf.assume_init()) }
@@ -54,6 +54,7 @@ mod tests {
 
     use crate::N_UUID_BYTES;
 
+    #[allow(unused_imports)]
     use super::*;
 
     #[test]
@@ -61,7 +62,7 @@ mod tests {
         let mut seen = HashSet::new();
 
         for _ in 0..1000000 {
-            let bytes: [u8; N_UUID_BYTES] = random_bytes().unwrap();
+            let bytes: [u8; N_UUID_BYTES] = random_bytes_16().unwrap();
             assert!(
                 seen.insert(bytes),
                 "duplicate random value found: {bytes:?}"
@@ -78,7 +79,7 @@ mod tests {
         let mut ones = 0usize;
 
         for _ in 0..samples {
-            let bytes = random_bytes::<N_UUID_BYTES>().unwrap();
+            let bytes = random_bytes_16().unwrap();
 
             for byte in bytes {
                 ones += byte.count_ones() as usize;

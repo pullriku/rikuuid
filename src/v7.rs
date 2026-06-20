@@ -1,6 +1,8 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::{N_UUID_BYTES, Result, bytes_to_uuid_string, error::UuidError, random::random_bytes};
+use crate::{
+    N_UUID_BYTES, Result, bytes_to_uuid_string, error::UuidError, random::random_bytes_16,
+};
 
 const N_TS_BYTES: usize = 6;
 const N_RANDOM_BYTES: usize = N_UUID_BYTES - N_TS_BYTES;
@@ -11,7 +13,11 @@ pub fn uuid_v7() -> Result<String> {
         .map_err(|_| UuidError::ClockBeforeUnixEpoch)?
         .as_millis() as u64;
 
-    let bytes = uuid_v7_from_parts(timestamp, random_bytes::<N_RANDOM_BYTES>()?);
+    let random = random_bytes_16()?;
+    let mut v7_random = [0u8; N_RANDOM_BYTES];
+    v7_random.copy_from_slice(&random[..N_RANDOM_BYTES]);
+
+    let bytes = uuid_v7_from_parts(timestamp, v7_random);
     Ok(bytes_to_uuid_string(bytes))
 }
 

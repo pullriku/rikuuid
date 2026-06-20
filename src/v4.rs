@@ -1,7 +1,7 @@
-use crate::{N_UUID_BYTES, Result, bytes_to_uuid_string, random::random_bytes};
+use crate::{N_UUID_BYTES, Result, bytes_to_uuid_string, random::random_bytes_16};
 
 pub fn uuid_v4() -> Result<String> {
-    let bytes = uuid_v4_from_random(random_bytes::<N_UUID_BYTES>()?);
+    let bytes = uuid_v4_from_random(random_bytes_16()?);
 
     Ok(bytes_to_uuid_string(bytes))
 }
