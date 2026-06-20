@@ -100,16 +100,9 @@ mod tests {
 
     #[test]
     fn uuid_v7_string_has_expected_format() {
-        let random = [
-            0xaa, 0xbb, 0xcc, 0xdd, 0xee,
-            0xff, 0x11, 0x22, 0x33, 0x44,
-        ];
+        let random = [0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x11, 0x22, 0x33, 0x44];
 
-        let s = bytes_to_uuid_string(uuid_v7_from_parts(
-            0x0123_4567_89ab,
-            random,
-        ))
-        .unwrap();
+        let s = bytes_to_uuid_string(uuid_v7_from_parts(0x0123_4567_89ab, random)).unwrap();
 
         assert_eq!(s, "01234567-89ab-7abb-8cdd-eeff11223344");
     }

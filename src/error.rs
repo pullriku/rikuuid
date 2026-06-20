@@ -16,7 +16,10 @@ impl Display for UuidError {
                 write!(f, "OSの乱数生成器が利用できません: {error}")
             }
             UuidError::FromUtf8Error(error) => write!(f, "UTF8への変換に失敗しました: {error}"),
-            UuidError::ClockBeforeUnixEpoch => write!(f, "OSの時刻設定が1970-01-01 00:00:00 UTCより前になっています"),
+            UuidError::ClockBeforeUnixEpoch => write!(
+                f,
+                "OSの時刻設定が1970-01-01 00:00:00 UTCより前になっています"
+            ),
         }
     }
 }
