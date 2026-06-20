@@ -3,7 +3,7 @@ use crate::{N_UUID_BYTES, Result, bytes_to_uuid_string, random::random_bytes};
 pub fn uuid_v4() -> Result<String> {
     let bytes = uuid_v4_from_random(random_bytes::<N_UUID_BYTES>()?);
 
-    bytes_to_uuid_string(bytes)
+    Ok(bytes_to_uuid_string(bytes))
 }
 
 fn uuid_v4_from_random(mut bytes: [u8; N_UUID_BYTES]) -> [u8; N_UUID_BYTES] {

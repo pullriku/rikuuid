@@ -11,10 +11,8 @@ pub fn uuid_v7() -> Result<String> {
         .map_err(|_| UuidError::ClockBeforeUnixEpoch)?
         .as_millis() as u64;
 
-    bytes_to_uuid_string(uuid_v7_from_parts(
-        timestamp,
-        random_bytes::<N_RANDOM_BYTES>()?,
-    ))
+    let bytes = uuid_v7_from_parts(timestamp, random_bytes::<N_RANDOM_BYTES>()?);
+    Ok(bytes_to_uuid_string(bytes))
 }
 
 fn uuid_v7_from_parts(timestamp: u64, random_bytes: [u8; N_RANDOM_BYTES]) -> [u8; N_UUID_BYTES] {
